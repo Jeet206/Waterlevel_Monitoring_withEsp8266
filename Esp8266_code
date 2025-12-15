@@ -1,0 +1,103 @@
+#include "BluetoothSerial.h"
+BluetoothSerial SerialBT;
+
+// Motor A (left)
+const int IN1 = 22;
+const int IN2 = 21;
+const int ENA = 5; // PWM pin
+
+// Motor B (right)
+const int IN3 = 19;
+const int IN4 = 18;
+const int ENB = 23; // PWM pin
+
+const int LED = 2; 
+
+const int speedPWM = 153; // 60% of 255
+
+void setup() {
+  Serial.begin(115200);
+  SerialBT.begin("ESP32_Robot");
+
+  pinMode(IN1, OUTPUT);
+  pinMode(IN2, OUTPUT);
+  pinMode(IN3, OUTPUT);
+  pinMode(IN4, OUTPUT);
+  pinMode(ENA, OUTPUT);
+  pinMode(ENB, OUTPUT);
+  pinMode(LED, OUTPUT);
+  digitalWrite(LED, LOW);
+
+  stopMotors();
+  Serial.println("Bluetooth Robot Ready. Connect via phone.");
+}
+
+void loop() {
+  if (SerialBT.available()) {
+    char command = SerialBT.read();
+    Serial.print("Received: "); Serial.println(command);
+
+    switch (command) {
+      case 'w': forward(); break;
+      case 'S': backward(); break;
+      case 'a': left(); break;
+      case 'd': right(); break;
+      case 's': stopMotors(); break;
+      default: stopMotors(); break;
+    }
+  }
+}
+
+// -------- Motor movements with PWM --------
+void forward() {
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, LOW);
+  analogWrite(ENA, speedPWM);
+  analogWrite(ENB, speedPWM);
+  digitalWrite(LED, HIGH);
+  Serial.println("Forward");
+}
+
+void backward() {
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, HIGH);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, HIGH);
+  analogWrite(ENA, speedPWM);
+  analogWrite(ENB, speedPWM);
+  digitalWrite(LED, LOW);
+  Serial.println("Stop");
+}
+
+void left() {
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, HIGH);
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, LOW);
+  analogWrite(ENA, speedPWM);
+  analogWrite(ENB, speedPWM);
+  Serial.println("Left");
+}
+
+void right() {
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, HIGH);
+  analogWrite(ENA, speedPWM);
+  analogWrite(ENB, speedPWM);
+  Serial.println("Right");
+}
+
+void stopMotors() {
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, LOW);
+  analogWrite(ENA, 0);
+  analogWrite(ENB, 0);
+  digitalWrite(LED, LOW);
+  Serial.println("STOP");
+}
